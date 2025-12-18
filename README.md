@@ -1,45 +1,57 @@
 # Feed Ursus Workflow
 
 ```mermaid
-flowchart TD;
- L((LAPTOP));
+---
+title: Jenkins job to copy the current live production solr index on digital.library.ucla.edu to various enivoronments for a starting point
+---
+flowchart TB
 
- TF(Test Feed);
- TL(Test Live);
- style TF fill:lightgreen
- style TL fill:lightgreen
+ %% CLASSES
+ classDef prod fill:lightgreen
+ classDef test fill:lightblue
+ classDef copy fill:cyan
 
- PF(Prod Feed);
- PL(Prod Live);
- style PF fill:lightblue
- style PL fill:lightblue
+ %% NODES
+ laptop@{ shape: sl-rect, label: "Local Machine (laptop)" }
 
- FU{Feed Ursus};
- JPP{Jenkins Solr Promote};
- JPT{Jenkins Solr Promote};
- JRP{Jenkins Solr Rollback};
- JRT{Jenkins Solr Rollback};
- style JPP fill:lightblue
- style JRP fill:lightblue
- style JPT fill:lightgreen
- style JRT fill:lightgreen
+ test-feed("Feed Ursus Test Solr<br /><em>t-w-ursusfeed01.library.ucla.edu</em>")
+ test-live("Test Web<br /><em>ursus-test.library.ucla.edu</em>")
+ class test-feed,test-live test
 
- JCL{Jenkins Solr Copy};
- JCF{Jenkins Solr Copy};
- JCPF{Jenkins Solr Copy};
- style JCL fill:cyan
- style JCF fill:cyan
- style JCPF fill:cyan
+ prod-feed("Feed Ursus Production Solr<br /><em>p-u-calursussolr-feed01.library.ucla.edu</em>")
+ prod-live("Production Web<br /><em>digital.library.ucla.edu</em>")
+ class prod-feed,prod-live prod
 
- L --> FU;
- FU --> TF;
- FU --> PF;
- PF --> JPP --> PL;
- PL --> JRP --> PL;
- PF --> JCPF --> TF;
- TF --> JPT --> TL;
- TL --> JRT --> TL;
- JPT --> TL;
- PL --> JCL --> TL;
- PL --> JCF --> TF;
+ feed-ursus@{ shape: rect, label: "<em>feed_ursus</em> software"}
+ JPP{{Jenkins Solr promotion job}}
+ JPT{{Jenkins Solr promotion job}}
+ JRP(((Rollback)))
+ JRT(((Rollback)))
+ class JPP,JRP prod
+ class JPT,JRT test
+
+ JCL{{Jenkins Solr copy job}}
+ JCF{{Jenkins Solr copy job}}
+ class JCL,JCF copy
+
+ %% DATA FLOW
+ laptop --> feed-ursus
+ feed-ursus --> test-feed
+ feed-ursus --> prod-feed
+
+ subgraph Production Environment
+   prod-feed --> JPP --> prod-live
+   prod-live <-.-> JRP
+ end
+
+ subgraph Test Environment
+   test-feed --> JPT --> test-live
+   test-live <-.-> JRT
+ end
+
+ subgraph Copy Solr Index Action for Index Initialization
+   prod-feed --> JCF --> test-feed
+   prod-live --> JCL --> test-live
+                 JCL --> test-feed
+ end
 ```

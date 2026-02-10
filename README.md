@@ -1,5 +1,9 @@
 # Feed Ursus Workflow
 
+This chart is out of date[^1]. Do not rely on the information herein.
+
+[^1]: 20206-02-10
+
 ```mermaid
 ---
 title: Jenkins job to copy the current live production solr index on digital.library.ucla.edu to various enivoronments for a starting point
